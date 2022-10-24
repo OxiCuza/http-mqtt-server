@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"math/rand"
 	"net"
 	"reflect"
@@ -171,12 +172,14 @@ func (c *client) readLoop() {
 			}
 
 			packet, err := packets.ReadPacket(nc)
+			// fmt.Println(packet)
 			if err != nil {
 				log.Error("read packet error: ", zap.Error(err), zap.String("ClientID", c.info.clientID))
 				msg := &Message{
 					client: c,
 					packet: DisconnectedPacket,
 				}
+
 				b.SubmitWork(c.info.clientID, msg)
 				return
 			}
@@ -408,6 +411,10 @@ func (c *client) processClientPublish(packet *packets.PublishPacket) {
 
 	topic := packet.TopicName
 
+	fmt.Println("Client ID : ", c.info.clientID)
+	fmt.Println("Topic : ", topic)
+	fmt.Println("Payload : ", string(packet.Payload))
+
 	if !c.broker.CheckTopicAuth(PUB, c.info.clientID, c.info.username, c.info.remoteIP, topic) {
 		log.Error("Pub Topics Auth failed, ", zap.String("topic", topic), zap.String("ClientID", c.info.clientID))
 		return
@@ -494,6 +501,10 @@ func (c *client) ProcessPublishMessage(packet *packets.PublishPacket) {
 			if s.share {
 				qsub = append(qsub, i)
 			} else {
+				/**
+				* Trigger http client
+				 */
+
 				publish(s, packet)
 			}
 
@@ -841,7 +852,7 @@ func (c *client) Close() {
 	}
 
 	if c.typ == CLIENT {
-		b.BroadcastUnSubscribe(unSubTopics)
+		// b.BroadcastUnSubscribe(unSubTopics)
 		//offline notification
 		b.OnlineOfflineNotification(c.info.clientID, false)
 	}
