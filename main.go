@@ -223,6 +223,12 @@ func main() {
 						return
 					}
 					c.JSON(http.StatusCreated, gin.H{"status": "ok"})
+
+					// Log time when packet HTTP send to client
+					fmt.Println()
+					fmt.Printf("HTTP Packet received timestamp : %d \n", time.Now().UnixMicro())
+					fmt.Println(strings.Repeat("=", 30))
+					fmt.Println()
 				})
 
 				r.Run(":" + container.Config.GinPort)
