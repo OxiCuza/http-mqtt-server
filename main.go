@@ -11,6 +11,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
+	"time"
 )
 
 // Configuration Structure to Hold the Config Values
@@ -130,23 +132,24 @@ func main() {
 
 				// Add OnMessage Event Hook
 				go func() {
-					server.Events.OnProcessMessage = func(cl events.Client, pk events.Packet) (pkx events.Packet, err error) {
-						fmt.Printf("< OnMessage received message from client %s: %s\n", cl.ID, string(pk.Payload))
+					server.Events.OnMessage = func(cl events.Client, pk events.Packet) (pkx events.Packet, err error) {
+						// Log time MQTT packet arrived in broker
+						fmt.Printf("** OnMessage received message from client %s: %s **\n", cl.ID, string(pk.Payload))
+						fmt.Printf("MQTT Packet received timestamp : %d", time.Now().Unix())
+						fmt.Println(strings.Repeat("=", 15))
+						fmt.Println()
 
+						// parsing topic and payload from mqtt to struct HTTP
 						subFromMQTT.Topic = pk.TopicName
 						subFromMQTT.Message = string(pk.Payload)
 
+						// Re-publish to subscribe packet from subscribe with same topic
 						err = server.Publish(pk.TopicName, []byte(subFromMQTT.Message), false)
 						if err != nil {
 							log.Fatal(err)
 						}
 
 						return pkx, nil
-					}
-
-					// Add OnSubscribe Event Hook
-					server.Events.OnSubscribe = func(filter string, cl events.Client, qos byte) {
-						fmt.Printf("<< OnSubscribe client subscribed %s: %s %v\n", cl.ID, filter, qos)
 					}
 				}()
 
@@ -179,17 +182,25 @@ func main() {
 					c.String(http.StatusOK, "i am ready !")
 				})
 
+				// Endpoint to get new value using HTPP
 				subcribe := r.Group("/subscribe")
 				subcribe.GET("/sensor/suhu", func(c *gin.Context) {
 					c.JSON(http.StatusOK, subFromMQTT)
 				})
 
+				// Conf to set authorization HTTP
 				authorized := r.Group("/", gin.BasicAuth(gin.Accounts{
 					container.Config.BasicAuthUser: container.Config.BasicAuthPass, // user:foo password:bar
 				}))
 
 				// Post To Topic
 				authorized.POST("publish", func(c *gin.Context) {
+
+					// Log time when packet HTTP arrived in broker
+					fmt.Printf("HTTP Packet received timestamp : %d", time.Now().Unix())
+					fmt.Println(strings.Repeat("=", 15))
+					fmt.Println()
+
 					var publishDTO PublishDTO
 					// Validate Payloadd
 					if err := c.ShouldBindJSON(&publishDTO); err != nil {
@@ -197,6 +208,7 @@ func main() {
 						return
 					}
 
+					// Set new value for HTTP GET from HTTP POST
 					subFromMQTT.Topic = publishDTO.Topic
 					subFromMQTT.Message = publishDTO.Message
 
