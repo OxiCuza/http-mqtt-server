@@ -134,9 +134,10 @@ func main() {
 				go func() {
 					server.Events.OnMessage = func(cl events.Client, pk events.Packet) (pkx events.Packet, err error) {
 						// Log time MQTT packet arrived in broker
+						fmt.Println()
 						fmt.Printf("** OnMessage received message from client %s: %s **\n", cl.ID, string(pk.Payload))
-						fmt.Printf("MQTT Packet received timestamp : %d", time.Now().Unix())
-						fmt.Println(strings.Repeat("=", 15))
+						fmt.Printf("MQTT Packet received timestamp : %d\n", time.Now().Unix())
+						fmt.Println(strings.Repeat("=", 30))
 						fmt.Println()
 
 						// parsing topic and payload from mqtt to struct HTTP
@@ -197,8 +198,9 @@ func main() {
 				authorized.POST("publish", func(c *gin.Context) {
 
 					// Log time when packet HTTP arrived in broker
-					fmt.Printf("HTTP Packet received timestamp : %d", time.Now().Unix())
-					fmt.Println(strings.Repeat("=", 15))
+					fmt.Println()
+					fmt.Printf("HTTP Packet received timestamp : %d \n", time.Now().Unix())
+					fmt.Println(strings.Repeat("=", 30))
 					fmt.Println()
 
 					var publishDTO PublishDTO
