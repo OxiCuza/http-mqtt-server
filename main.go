@@ -136,7 +136,7 @@ func main() {
 						// Log time MQTT packet arrived in broker
 						fmt.Println()
 						fmt.Printf("** OnMessage received message from client %s: %s **\n", cl.ID, string(pk.Payload))
-						fmt.Printf("MQTT Packet received timestamp : %d\n", time.Now().Unix())
+						fmt.Printf("MQTT Packet received timestamp : %d\n", time.Now().UnixMicro())
 						fmt.Println(strings.Repeat("=", 30))
 						fmt.Println()
 
@@ -199,7 +199,7 @@ func main() {
 
 					// Log time when packet HTTP arrived in broker
 					fmt.Println()
-					fmt.Printf("HTTP Packet received timestamp : %d \n", time.Now().Unix())
+					fmt.Printf("HTTP Packet received timestamp : %d \n", time.Now().UnixMicro())
 					fmt.Println(strings.Repeat("=", 30))
 					fmt.Println()
 
